@@ -6,7 +6,7 @@ const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-be
 const { parseArguments, processPrompts } = require('./llm_utils');
 
 // Default model constant
-const BEDROCK_LLAMA_DEFAULT_MODEL = 'meta.llama3-1-70b-instruct-v1:0';
+const BEDROCK_LLAMA_DEFAULT_MODEL = 'us.meta.llama3-1-70b-instruct-v1:0';
 
 // Parse command line arguments
 const argv = parseArguments({
