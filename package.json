@@ -10,7 +10,7 @@
     "start": "node process_prompts.js"
   },
   "dependencies": {
-    "@aws-sdk/client-bedrock-runtime": "^3.691.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.706.0",
     "dotenv": "^16.4.5",
     "kleur": "^4.1.5",
     "undici": "^5.28.2",

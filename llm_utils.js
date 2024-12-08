@@ -47,15 +47,39 @@ function readPrompts() {
     
     try {
         const fileContent = fs.readFileSync(promptsPath, 'utf8');
-        const inputData = JSON.parse(fileContent);
+        let inputData;
+        
+        try {
+            inputData = JSON.parse(fileContent);
+        } catch (parseError) {
+            console.error(kleur.red('Error parsing prompts.json:', parseError.message));
+            process.exit(1);
+        }
 
         if (!inputData.prompts || !Array.isArray(inputData.prompts)) {
-            throw new Error('Invalid prompts.json format. Expected {"prompts": [...]}');
+            console.error(kleur.red('Error: Invalid prompts.json format. Expected {"prompts": [...]}'));
+            process.exit(1);
+        }
+                
+        // Validate that each prompt has the required structure
+        for (let i = 0; i < inputData.prompts.length; i++) {
+            const prompt = inputData.prompts[i];
+            if (!prompt || typeof prompt !== 'object') {
+                console.error(kleur.red(`Error: Invalid prompt at index ${i}. Expected an object, got ${typeof prompt}`));
+                process.exit(1);
+            }
+            if (!prompt.title || !prompt.prompt) {
+                console.error(kleur.red(`Error: Invalid prompt at index ${i}. Each prompt must have 'title' and 'prompt' fields`));
+                process.exit(1);
+            }
         }
 
         return inputData.prompts;
     } catch (error) {
-        console.error(kleur.red('Error reading prompts.json:', error.message));
+        console.error(kleur.red(`Error reading prompts.json: ${error.message}`));
+        if (error.stack) {
+            console.error(kleur.red('Stack trace:', error.stack));
+        }
         process.exit(1);
     }
 }
@@ -85,15 +109,16 @@ async function processPrompts(getCompletion, config) {
 
     // Process each prompt
     for (let i = 0; i < prompts.length; i++) {
-        const prompt = prompts[i];
-        console.log(`\n${kleur.cyan(`Prompt ${i + 1}: ${prompt}`)}`);
+        const { title, prompt } = prompts[i];
+        console.log(`\n${kleur.cyan(`Test ${i + 1} [${title}]: ${prompt}`)}`);
 
         const result = await getCompletion(prompt);
         console.log(kleur.green(`Response: ${result.response}`));
         console.log(kleur.yellow(`Time taken: ${result.duration}ms`));
 
         // Append to output content
-        outputContent += `Prompt ${i + 1}: ${prompt}\n`;
+        outputContent += `Test ${i + 1} [${title}]\n`;
+        outputContent += `Prompt: ${prompt}\n`;
         outputContent += `Response: ${result.response}\n`;
         outputContent += `Time: ${result.duration}ms\n\n`;
         
