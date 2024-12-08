@@ -6,20 +6,12 @@ const kleur = require('kleur');
 const { parseArguments, processPrompts } = require('./llm_utils');
 
 // Default model constant
-const ANTHROPIC_DEFAULT_MODEL = 'claude-3-haiku-20240307';
-
-const modelsDict = [
-    { id: "claude-3-haiku-20240307", name: "Haiku" },
-    { id: "claude-3-sonnet-20240229", name: "Sonnet" },
-    { id: "claude-3-opus-20240229", name: "Opus" },
-    { id: "claude-3-5-sonnet-20240620", name: "Sonnet35" },
-    { id: "claude-3-5-haiku-20241022", name: "Haiku35" }
-];
+const ANTHROPIC_DEFAULT_MODEL = 'claude-3-5-haiku-20241022';
 
 // Parse command line arguments
 const argv = parseArguments({
     defaultModel: ANTHROPIC_DEFAULT_MODEL,
-    modelDescription: 'Specify the model to use (Haiku, Sonnet, Opus, Sonnet35, Haiku35)',
+    modelDescription: 'Specify the model ID (e.g., claude-3-5-haiku-20241022)',
     modelEnvVar: 'ANTHROPIC_DEFAULT_MODEL'
 });
 
@@ -28,28 +20,18 @@ const MODEL = argv.model;
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const API_URL = 'https://api.anthropic.com/v1/messages';
 
-function getModelId(modelName) {
-    const model = modelsDict.find(model => model.name === modelName);
-    return model ? model.id : null;
-}
-
 // Function to make Anthropic API call
 async function getCompletion(prompt) {
     const startTime = Date.now();
     
     try {
-        const modelId = getModelId(MODEL);
-        if (!modelId) {
-            throw new Error(`Invalid model name: ${MODEL}`);
-        }
-
         // Validate API Key
         if (!ANTHROPIC_API_KEY) {
             throw new Error('Anthropic API key is required. Set ANTHROPIC_API_KEY in .env');
         }
 
         const requestBody = {
-            model: modelId,
+            model: MODEL,
             max_tokens: 1000,
             temperature: 0,
             messages: [
@@ -87,7 +69,7 @@ async function getCompletion(prompt) {
         return {
             response: data.content[0].text,
             duration: duration,
-            model: modelId
+            model: MODEL
         };
     } catch (error) {
         console.error(kleur.red('Error calling Anthropic API:', error.message));

@@ -6,6 +6,7 @@ const { hideBin } = require('yargs/helpers');
 
 // Constants
 const OUTPUT_DIR = 'output';
+const RESULTS_CSV = path.join(OUTPUT_DIR, 'results.csv');
 
 /**
  * Configure and parse command line arguments
@@ -85,11 +86,18 @@ function readPrompts() {
 }
 
 /**
- * Ensure output directory exists
+ * Ensure output directory exists and initialize CSV if needed
+ * @param {Array} prompts Array of prompts
  */
-function ensureOutputDirectory() {
+function ensureOutputDirectory(prompts) {
     if (!fs.existsSync(OUTPUT_DIR)) {
         fs.mkdirSync(OUTPUT_DIR);
+    }
+
+    // Create CSV with headers if it doesn't exist
+    if (!fs.existsSync(RESULTS_CSV)) {
+        const headers = ['model', ...prompts.map(p => p.title)].join(',') + '\n';
+        fs.writeFileSync(RESULTS_CSV, headers);
     }
 }
 
@@ -102,10 +110,11 @@ function ensureOutputDirectory() {
 async function processPrompts(getCompletion, config) {
     const { model, provider } = config;
     const prompts = readPrompts();
-    ensureOutputDirectory();
+    ensureOutputDirectory(prompts);
 
     let totalDuration = 0;
     let outputContent = '';
+    let timings = [model];
 
     // Process each prompt
     for (let i = 0; i < prompts.length; i++) {
@@ -115,6 +124,9 @@ async function processPrompts(getCompletion, config) {
         const result = await getCompletion(prompt);
         console.log(kleur.green(`Response: ${result.response}`));
         console.log(kleur.yellow(`Time taken: ${result.duration}ms`));
+
+        // Store timing for CSV
+        timings.push(result.duration);
 
         // Append to output content
         outputContent += `Test ${i + 1} [${title}]\n`;
@@ -133,6 +145,9 @@ async function processPrompts(getCompletion, config) {
     // Write output file
     const outputPath = path.join(OUTPUT_DIR, `${provider}-${model.toLowerCase().replace(/[^a-zA-Z0-9-_]/g, '-')}.txt`);
     fs.writeFileSync(outputPath, outputContent);
+
+    // Append timings to CSV
+    fs.appendFileSync(RESULTS_CSV, timings.join(',') + '\n');
 
     // Print summary
     console.log('\n' + kleur.magenta(`Model used: ${model}`));

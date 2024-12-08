@@ -28,6 +28,7 @@ async function checkServer() {
         await fetch(`${LLM_SERVER_URL}/api/tags`);
         return true;
     } catch (error) {
+        console.log(error);
         console.error(kleur.red(`Error: Ollama server is not running on ${LLM_SERVER_URL}`));
         console.error(kleur.red('Please start the Ollama server first.'));
         process.exit(1);

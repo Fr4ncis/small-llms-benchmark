@@ -16,7 +16,7 @@ const argv = parseArguments({
             alias: 'k',
             description: 'Specify the Groq API key',
             type: 'string',
-            default: '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'
+            default: process.env.GROQ_API_KEY
         }
     }
 });
